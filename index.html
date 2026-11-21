@@ -15,17 +15,24 @@
   h1{font-size:22px; letter-spacing:.02em;}
   h1 .red{color:#e5484d;}
   .desc{font-size:13.5px; color:var(--muted); margin-top:8px;}
+  .filters{max-width:980px; margin:0 auto; padding:12px 16px 4px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .filters input[type="text"], .filters select{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:14px;}
+  .filters input[type="text"]{flex:1 1 150px; min-width:120px;}
+  .filters button{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:14px; cursor:pointer;}
+  .filters button:hover{border-color:var(--accent);}
   .bar{position:sticky; top:0; z-index:50; background:rgba(20,22,26,.96); border-bottom:1px solid var(--line); padding:10px 16px;}
   .bar-in{max-width:980px; margin:0 auto; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
-  .bar input[type="text"], .bar select{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:14px;}
-  .bar input[type="text"]{flex:1 1 150px; min-width:120px;}
   .bar button{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:14px; cursor:pointer;}
   .bar button:hover{border-color:var(--accent);}
+  .conds{display:flex; flex-wrap:wrap; gap:6px; align-items:center; flex:1 1 auto; min-width:0; font-size:13.5px;}
+  .conds .lbl{color:var(--muted); font-size:12.5px; font-weight:bold;}
+  .cond-pill{border:1px solid var(--line); background:var(--card2); border-radius:20px; padding:1px 10px; font-size:12.5px; white-space:nowrap;}
+  .cond-none{color:var(--muted); font-size:13px;}
   .count{font-size:13px; color:var(--muted); white-space:nowrap;}
   .bar-summary{display:none; flex:1 1 auto; min-width:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .bar-summary .lbl{color:var(--muted); font-size:12px; margin-right:6px;}
   .bar.is-minimized{padding:8px 16px;}
-  .bar.is-minimized .cond{display:none;}
+  .bar.is-minimized .conds{display:none;}
   .bar.is-minimized .bar-summary{display:block;}
   .bar-toggle{white-space:nowrap;}
   .player-wrap{position:relative; flex:2 1 220px; display:flex;}
@@ -80,22 +87,26 @@
   <p class="desc">AC北斗の拳の大型大会（2010年〜）の動画・組合せ・参加者リストをまとめたアーカイブです。プレイヤー名で検索すると、そのプレイヤーの参加大会を絞り込めます。</p>
 </header>
 
+<div class="filters">
+  <div class="player-wrap">
+    <input type="text" id="playerInput" placeholder="プレイヤー名で検索（参加大会を表示）" autocomplete="off">
+    <div class="suggest" id="suggest"></div>
+  </div>
+  <select id="seriesSel"><option value="">シリーズ：全て</option></select>
+  <select id="yearSel"><option value="">年：全て</option></select>
+  <input type="text" id="qInput" placeholder="大会名・開催地で検索">
+  <select id="sortSel">
+    <option value="desc">新しい順</option>
+    <option value="asc">古い順</option>
+  </select>
+  <button id="resetBtn">リセット</button>
+</div>
+
 <div class="bar">
   <div class="bar-in">
-    <div class="player-wrap cond">
-      <input type="text" id="playerInput" placeholder="プレイヤー名で検索（参加大会を表示）" autocomplete="off">
-      <div class="suggest" id="suggest"></div>
-    </div>
-    <select id="seriesSel" class="cond"><option value="">シリーズ：全て</option></select>
-    <select id="yearSel" class="cond"><option value="">年：全て</option></select>
-    <input type="text" id="qInput" class="cond" placeholder="大会名・開催地で検索">
-    <select id="sortSel" class="cond">
-      <option value="desc">新しい順</option>
-      <option value="asc">古い順</option>
-    </select>
+    <div class="conds" id="conds"></div>
     <div class="bar-summary" id="barSummary"></div>
     <span class="count" id="hitCount"></span>
-    <button id="resetBtn" class="cond">リセット</button>
     <button id="barToggle" class="bar-toggle" aria-expanded="true">▲ 最小化</button>
   </div>
 </div>
@@ -339,7 +350,7 @@ function render(){
     return state.sort === "desc" ? -lt : lt;
   });
   document.getElementById("hitCount").textContent = list.length + " / " + events.length + " 大会";
-  updateSummary();
+  renderConds();
   var main = document.getElementById("main");
   if (!list.length){
     main.innerHTML = '<div class="loading">条件に合う大会がありません。</div>';
@@ -415,30 +426,42 @@ document.getElementById("resetBtn").addEventListener("click", function(){
   render();
 });
 
-function updateSummary(){
-  var parts = [];
-  if (state.player) parts.push("プレイヤー：" + state.player);
-  if (state.series) parts.push(state.series);
-  if (state.year) parts.push(state.year + "年");
-  if (state.q) parts.push("検索：" + state.q);
-  if (state.sort === "asc") parts.push("古い順");
+function renderConds(){
+  var pills = [], plain = [];
+  function add(t){ pills.push('<span class="cond-pill">' + esc(t) + "</span>"); plain.push(t); }
+  if (state.player) add("プレイヤー：" + state.player);
+  if (state.series) add(state.series);
+  if (state.year) add(state.year + "年");
+  if (state.q) add("検索：" + state.q);
+  if (state.sort === "asc") add("古い順");
+  document.getElementById("conds").innerHTML =
+    '<span class="lbl">現在の条件</span>' + (plain.length ? pills.join("") : '<span class="cond-none">指定なし（全件表示）</span>');
+  var txt = plain.length ? plain.join(" ／ ") : "指定なし（全件表示）";
   var el = document.getElementById("barSummary");
-  var txt = parts.length ? parts.join(" ／ ") : "指定なし（全件表示）";
   el.innerHTML = '<span class="lbl">現在の条件</span>' + esc(txt);
   el.setAttribute("title", "現在の条件：" + txt);
 }
 
 var barEl = document.querySelector(".bar");
 var barToggle = document.getElementById("barToggle");
+var barMinimized = false;
+var manualHold = false;
 function setBarMinimized(min){
+  if (barMinimized === min) return;
+  barMinimized = min;
   barEl.classList.toggle("is-minimized", min);
   barToggle.setAttribute("aria-expanded", min ? "false" : "true");
-  barToggle.textContent = min ? "▼ 展開" : "▲ 最小化";
+  barToggle.textContent = min ? "▼ 条件を表示" : "▲ 最小化";
 }
 barToggle.addEventListener("click", function(){
-  setBarMinimized(!barEl.classList.contains("is-minimized"));
+  manualHold = true;
+  setBarMinimized(!barMinimized);
 });
-if (window.innerWidth <= 640) setBarMinimized(true);
+window.addEventListener("scroll", function(){
+  if (window.innerWidth > 640) return;
+  if (window.scrollY < 60){ manualHold = false; setBarMinimized(false); }
+  else if (!manualHold) setBarMinimized(true);
+}, { passive: true });
 
 init();
 </script>
