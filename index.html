@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AC北斗の拳 大型大会アーカイブ</title>
+<style>
+  :root{
+    --bg:#14161a; --card:#1e2126; --card2:#262a31; --line:#3a3f47;
+    --text:#e8eaed; --muted:#9aa3ad; --accent:#e8b33c; --accent2:#58c5d8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.5;}
+  header{padding:20px 16px 8px; max-width:980px; margin:0 auto;}
+  h1{font-size:22px; letter-spacing:.02em;}
+  h1 .sub{display:block; font-size:12px; color:var(--muted); margin-top:4px; font-weight:normal;}
+  .bar{position:sticky; top:0; z-index:50; background:rgba(20,22,26,.96); border-bottom:1px solid var(--line); padding:10px 16px;}
+  .bar-in{max-width:980px; margin:0 auto; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .bar input[type="text"], .bar select{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:14px;}
+  .bar input[type="text"]{flex:1 1 150px; min-width:120px;}
+  .bar button{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:14px; cursor:pointer;}
+  .bar button:hover{border-color:var(--accent);}
+  .count{font-size:13px; color:var(--muted); white-space:nowrap;}
+  .player-wrap{position:relative; flex:2 1 220px; display:flex;}
+  .player-wrap input{width:100%;}
+  .suggest{position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--card2); border:1px solid var(--line); border-radius:8px; overflow:hidden; display:none; max-height:320px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,.5);}
+  .suggest div{padding:8px 12px; cursor:pointer; font-size:14px; display:flex; justify-content:space-between; gap:8px;}
+  .suggest div:hover{background:#31363f;}
+  .suggest .n{color:var(--muted); font-size:12px; white-space:nowrap;}
+  .player-banner{max-width:980px; margin:10px auto 0; padding:0 16px; display:none;}
+  .player-banner .in{background:#2c2a1e; border:1px solid var(--accent); color:var(--text); border-radius:8px; padding:8px 12px; font-size:14px; display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .player-banner button{background:none; border:1px solid var(--line); color:var(--text); border-radius:6px; padding:2px 10px; cursor:pointer;}
+  main{max-width:980px; margin:0 auto; padding:12px 16px 40px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:12px;}
+  .card .top{display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline;}
+  .date{color:var(--muted); font-size:13px; white-space:nowrap;}
+  .name{font-size:17px; font-weight:bold;}
+  .series{background:#31363f; color:var(--accent2); border-radius:20px; padding:1px 10px; font-size:12px; white-space:nowrap;}
+  .meta{color:var(--muted); font-size:13px; margin-top:4px;}
+  .pinfo{color:var(--accent); font-size:13px; margin-top:4px;}
+  .toggle{margin-top:10px; background:none; border:1px solid var(--line); color:var(--text); border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer;}
+  .toggle:hover{border-color:var(--accent);}
+  .detail{display:none; margin-top:12px; border-top:1px solid var(--line); padding-top:12px;}
+  .detail.open{display:block;}
+  .detail h3{font-size:14px; color:var(--accent); margin:12px 0 6px;}
+  .detail h3:first-child{margin-top:0;}
+  .vlist{list-style:none;}
+  .vlist li{margin:4px 0; font-size:14px;}
+  .vlist .plat{color:var(--muted); font-size:12px; border:1px solid var(--line); border-radius:4px; padding:0 6px; margin-right:6px; white-space:nowrap;}
+  .vlist .lbl{color:var(--accent2); font-size:12px; margin-right:6px;}
+  a{color:#7db8f0; text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .chips{display:flex; flex-wrap:wrap; gap:6px;}
+  .chip{border:1px solid var(--line); border-radius:16px; padding:2px 10px; font-size:13px;}
+  .team{margin:8px 0;}
+  .team .tname{font-weight:bold; font-size:14px; margin-bottom:4px;}
+  .members{display:flex; flex-wrap:wrap; gap:6px;}
+  .member{background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:3px 8px; font-size:13px; display:inline-flex; align-items:center; gap:6px;}
+  .member .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+  .member .ch{color:var(--muted); font-size:12px;}
+  .member.hl{border-color:var(--accent); background:#2c2a1e; font-weight:bold;}
+  .src{font-size:12px; color:var(--muted); margin-top:8px; word-break:break-all;}
+  .loading, .error{text-align:center; padding:40px 0; color:var(--muted);}
+  .error{color:#f08a8a;}
+  footer{max-width:980px; margin:0 auto; padding:0 16px 30px; color:var(--muted); font-size:12px;}
+  @media (max-width:640px){ h1{font-size:19px;} .name{font-size:16px;} }
+</style>
+</head>
+<body>
+<header>
+  <h1>AC北斗の拳 大型大会アーカイブ<span class="sub">過去の大型大会の動画・組合せ・参加者リスト（2010年〜）</span></h1>
+</header>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="player-wrap">
+      <input type="text" id="playerInput" placeholder="プレイヤー名で検索（参加大会を表示）" autocomplete="off">
+      <div class="suggest" id="suggest"></div>
+    </div>
+    <select id="seriesSel"><option value="">シリーズ：全て</option></select>
+    <select id="yearSel"><option value="">年：全て</option></select>
+    <input type="text" id="qInput" placeholder="大会名・開催地で検索">
+    <select id="sortSel">
+      <option value="desc">新しい順</option>
+      <option value="asc">古い順</option>
+    </select>
+    <span class="count" id="hitCount"></span>
+    <button id="resetBtn">リセット</button>
+  </div>
+</div>
+
+<div class="player-banner" id="playerBanner"><div class="in"><span id="playerBannerText"></span><button id="playerClear">解除</button></div></div>
+
+<main id="main">
+  <div class="loading" id="loading">読み込み中…</div>
+</main>
+
+<footer>
+  データは管理用スプレッドシートから自動で読み込んでいます。シートを更新すればこのページにも反映されます。
+</footer>
+
+<script>
+"use strict";
+var SHEET_ID = "1YUf8lJyVvWXZah1j3JtnRithp_nm_53N";
+function csvUrl(sheetName){
+  return "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(sheetName);
+}
+var CHAR_COLORS = {
+  "ケンシロウ":"#2878C8", "トキ":"#E8E8E8", "ジャギ":"#813C9B", "シン":"#D83232",
+  "レイ":"#58C5D8", "ユダ":"#E879A9", "サウザー":"#D6A52A", "ハート様":"#E98B36",
+  "マミヤ":"#429B65", "ラオウ":"#9AA5B1"
+};
+
+function parseCSV(text){
+  var rows = [], row = [], field = "", inQ = false, i, c;
+  text = text.replace(/^\uFEFF/, "");
+  for (i = 0; i < text.length; i++){
+    c = text[i];
+    if (inQ){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else inQ = false;
+      } else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ","){ row.push(field); field = ""; }
+      else if (c === "\n"){ row.push(field); field = ""; rows.push(row); row = []; }
+      else if (c === "\r"){ /* skip */ }
+      else field += c;
+    }
+  }
+  if (field !== "" || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+function toObjects(rows){
+  if (!rows.length) return [];
+  var head = rows[0], out = [], i, j, o;
+  for (i = 1; i < rows.length; i++){
+    if (rows[i].length === 1 && rows[i][0] === "") continue;
+    o = {};
+    for (j = 0; j < head.length; j++) o[head[j]] = (rows[i][j] !== undefined ? rows[i][j] : "");
+    out.push(o);
+  }
+  return out;
+}
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(m){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];
+  });
+}
+function fetchCSV(name){
+  return fetch(csvUrl(name)).then(function(r){
+    if (!r.ok) throw new Error(name + " の読み込みに失敗しました");
+    return r.text();
+  }).then(function(t){ return toObjects(parseCSV(t)); });
+}
+
+var events = [], videosBy = {}, bracketsBy = {}, playersBy = {}, playerTids = {}, playerCount = {};
+var state = { player:"", series:"", year:"", q:"", sort:"desc" };
+var expanded = {};
+
+function groupByTid(list){
+  var m = {}, i;
+  for (i = 0; i < list.length; i++){
+    var id = list[i]["大会ID"];
+    if (!m[id]) m[id] = [];
+    m[id].push(list[i]);
+  }
+  return m;
+}
+
+function init(){
+  Promise.all([fetchCSV("大会マスタ"), fetchCSV("動画リスト"), fetchCSV("組合せリンク"), fetchCSV("参加者")])
+  .then(function(res){
+    events = res[0];
+    videosBy = groupByTid(res[1]);
+    bracketsBy = groupByTid(res[2]);
+    playersBy = groupByTid(res[3]);
+    var i, j, rows, nm;
+    for (i = 0; i < res[3].length; i++){
+      nm = res[3][i]["プレイヤー名"];
+      if (!nm) continue;
+      if (!playerTids[nm]){ playerTids[nm] = {}; playerCount[nm] = 0; }
+      if (!playerTids[nm][res[3][i]["大会ID"]]){ playerTids[nm][res[3][i]["大会ID"]] = true; playerCount[nm]++; }
+    }
+    buildSelects();
+    document.getElementById("loading").style.display = "none";
+    render();
+  })
+  .catch(function(e){
+    var el = document.getElementById("loading");
+    el.className = "error";
+    el.textContent = "データの読み込みに失敗しました。時間をおいて再読み込みしてください。（" + e.message + "）";
+  });
+}
+
+function buildSelects(){
+  var seriesSet = {}, yearSet = {}, i, s, y;
+  for (i = 0; i < events.length; i++){
+    seriesSet[events[i]["シリーズ"]] = true;
+    yearSet[events[i]["開催日"].slice(0,4)] = true;
+  }
+  var ss = document.getElementById("seriesSel");
+  Object.keys(seriesSet).sort().forEach(function(k){
+    var o = document.createElement("option"); o.value = k; o.textContent = k; ss.appendChild(o);
+  });
+  var ys = document.getElementById("yearSel");
+  Object.keys(yearSet).sort().reverse().forEach(function(k){
+    var o = document.createElement("option"); o.value = k; o.textContent = k + "年"; ys.appendChild(o);
+  });
+}
+
+function matchEvent(e){
+  if (state.series && e["シリーズ"] !== state.series) return false;
+  if (state.year && e["開催日"].slice(0,4) !== state.year) return false;
+  if (state.player && !(playerTids[state.player] && playerTids[state.player][e["大会ID"]])) return false;
+  if (state.q){
+    var q = state.q.toLowerCase();
+    var hay = (e["大会名"] + " " + e["開催地"] + " " + e["形式"]).toLowerCase();
+    if (hay.indexOf(q) < 0) return false;
+  }
+  return true;
+}
+
+function playerInfoLine(e){
+  if (!state.player) return "";
+  var rows = playersBy[e["大会ID"]] || [], i, parts = [];
+  for (i = 0; i < rows.length; i++){
+    if (rows[i]["プレイヤー名"] === state.player){
+      var p = state.player;
+      if (rows[i]["チーム名"]) p += "（" + rows[i]["チーム名"];
+      if (rows[i]["使用キャラ"]) p += (rows[i]["チーム名"] ? "／" : "（") + rows[i]["使用キャラ"];
+      if (rows[i]["チーム名"] || rows[i]["使用キャラ"]) p += "）";
+      parts.push(p);
+    }
+  }
+  if (!parts.length) return "";
+  return '<div class="pinfo">▶ ' + esc(parts.join("、")) + "</div>";
+}
+
+function cardHtml(e){
+  var id = e["大会ID"];
+  var h = '<article class="card" data-tid="' + esc(id) + '">';
+  h += '<div class="top"><span class="date">' + esc(e["開催日"]) + '</span>';
+  h += '<span class="name">' + esc(e["大会名"]) + '</span>';
+  h += '<span class="series">' + esc(e["シリーズ"]) + '</span></div>';
+  h += '<div class="meta">' + esc(e["開催地"]) + " ｜ " + esc(e["形式"]) + " ｜ 参加：" + esc(e["参加数"]) + "</div>";
+  h += playerInfoLine(e);
+  h += '<button class="toggle" data-act="toggle">' + (expanded[id] ? "閉じる" : "動画・組合せ・参加者を表示") + "</button>";
+  h += '<div class="detail' + (expanded[id] ? " open" : "") + '" data-detail="' + esc(id) + '">';
+  if (expanded[id]) h += detailHtml(e);
+  h += "</div></article>";
+  return h;
+}
+
+function detailHtml(e){
+  var id = e["大会ID"], h = "", i, v, b, rows;
+  var vids = videosBy[id] || [];
+  if (vids.length){
+    h += "<h3>動画・配信</h3><ul class='vlist'>";
+    for (i = 0; i < vids.length; i++){
+      v = vids[i];
+      var label = v["タイトル"] || v["区分"] || v["媒体"];
+      h += "<li><span class='plat'>" + esc(v["媒体"]) + "</span>";
+      if (v["区分"] && v["タイトル"]) h += "<span class='lbl'>" + esc(v["区分"]) + "</span>";
+      h += '<a href="' + esc(v["URL"]) + '" target="_blank" rel="noopener">' + esc(label) + "</a></li>";
+    }
+    h += "</ul>";
+  }
+  var brs = bracketsBy[id] || [];
+  if (brs.length){
+    h += "<h3>組合せ・結果</h3><div class='chips'>";
+    for (i = 0; i < brs.length; i++){
+      b = brs[i];
+      h += '<a class="chip" href="' + esc(b["URL"]) + '" target="_blank" rel="noopener">' + esc(b["ラベル"] || b["URL"]) + "</a>";
+    }
+    h += "</div>";
+  }
+  rows = playersBy[id] || [];
+  if (rows.length){
+    h += "<h3>参加者（" + rows.length + "名）</h3>";
+    var teams = [], teamMap = {}, t;
+    for (i = 0; i < rows.length; i++){
+      t = rows[i]["チーム名"] || "";
+      if (!teamMap[t]){ teamMap[t] = []; teams.push(t); }
+      teamMap[t].push(rows[i]);
+    }
+    for (i = 0; i < teams.length; i++){
+      t = teams[i];
+      h += "<div class='team'>";
+      if (t) h += "<div class='tname'>" + esc(t) + "</div>";
+      h += "<div class='members'>";
+      teamMap[t].forEach(function(p){
+        var hl = (state.player && p["プレイヤー名"] === state.player) ? " hl" : "";
+        h += "<span class='member" + hl + "'>";
+        if (p["使用キャラ"] && CHAR_COLORS[p["使用キャラ"]]) h += "<span class='dot' style='background:" + CHAR_COLORS[p["使用キャラ"]] + "'></span>";
+        h += esc(p["プレイヤー名"]);
+        if (p["使用キャラ"]) h += "<span class='ch'>" + esc(p["使用キャラ"]) + "</span>";
+        h += "</span>";
+      });
+      h += "</div></div>";
+    }
+    var srcs = {}, slist = [];
+    for (i = 0; i < rows.length; i++){
+      if (rows[i]["出典URL"] && !srcs[rows[i]["出典URL"]]){ srcs[rows[i]["出典URL"]] = true; slist.push(rows[i]["出典URL"]); }
+    }
+    if (slist.length){
+      h += "<div class='src'>参加者出典：" + slist.map(function(u){ return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u) + "</a>"; }).join(" ") + "</div>";
+    }
+  }
+  if (!vids.length && !brs.length && !rows.length) h += "<div class='src'>リンク・参加者データはまだありません。</div>";
+  return h;
+}
+
+function render(){
+  var list = events.filter(matchEvent);
+  list.sort(function(a, b){
+    if (a["開催日"] === b["開催日"]) return 0;
+    var lt = a["開催日"] < b["開催日"] ? -1 : 1;
+    return state.sort === "desc" ? -lt : lt;
+  });
+  document.getElementById("hitCount").textContent = list.length + " / " + events.length + " 大会";
+  var main = document.getElementById("main");
+  if (!list.length){
+    main.innerHTML = '<div class="loading">条件に合う大会がありません。</div>';
+    return;
+  }
+  main.innerHTML = list.map(cardHtml).join("");
+  var banner = document.getElementById("playerBanner");
+  if (state.player){
+    banner.style.display = "block";
+    document.getElementById("playerBannerText").textContent = "プレイヤー「" + state.player + "」の参加大会：" + list.length + "件（全" + (playerCount[state.player] || 0) + "大会に参加）";
+  } else {
+    banner.style.display = "none";
+  }
+}
+
+document.getElementById("main").addEventListener("click", function(ev){
+  var btn = ev.target.closest("[data-act='toggle']");
+  if (!btn) return;
+  var card = btn.closest(".card"), id = card.getAttribute("data-tid");
+  var detail = card.querySelector(".detail");
+  expanded[id] = !expanded[id];
+  if (expanded[id]){
+    if (!detail.innerHTML) detail.innerHTML = detailHtml(events.filter(function(e){ return e["大会ID"] === id; })[0]);
+    detail.classList.add("open");
+    btn.textContent = "閉じる";
+  } else {
+    detail.classList.remove("open");
+    btn.textContent = "動画・組合せ・参加者を表示";
+  }
+});
+
+var playerInput = document.getElementById("playerInput");
+var suggest = document.getElementById("suggest");
+playerInput.addEventListener("input", function(){
+  var q = playerInput.value.trim();
+  if (!q){ suggest.style.display = "none"; return; }
+  var names = Object.keys(playerTids).filter(function(n){ return n.toLowerCase().indexOf(q.toLowerCase()) >= 0; });
+  names.sort(function(a, b){ return (playerCount[b] - playerCount[a]) || (a < b ? -1 : 1); });
+  names = names.slice(0, 20);
+  if (!names.length){ suggest.style.display = "none"; return; }
+  suggest.innerHTML = names.map(function(n){
+    return '<div data-name="' + esc(n) + '"><span>' + esc(n) + '</span><span class="n">' + playerCount[n] + "大会</span></div>";
+  }).join("");
+  suggest.style.display = "block";
+});
+suggest.addEventListener("click", function(ev){
+  var d = ev.target.closest("[data-name]");
+  if (!d) return;
+  state.player = d.getAttribute("data-name");
+  playerInput.value = state.player;
+  suggest.style.display = "none";
+  expanded = {};
+  render();
+});
+document.addEventListener("click", function(ev){
+  if (!ev.target.closest(".player-wrap")) suggest.style.display = "none";
+});
+document.getElementById("playerClear").addEventListener("click", function(){
+  state.player = ""; playerInput.value = ""; expanded = {}; render();
+});
+document.getElementById("seriesSel").addEventListener("change", function(){ state.series = this.value; render(); });
+document.getElementById("yearSel").addEventListener("change", function(){ state.year = this.value; render(); });
+document.getElementById("sortSel").addEventListener("change", function(){ state.sort = this.value; render(); });
+document.getElementById("qInput").addEventListener("input", function(){ state.q = this.value.trim(); render(); });
+document.getElementById("resetBtn").addEventListener("click", function(){
+  state = { player:"", series:"", year:"", q:"", sort:"desc" };
+  playerInput.value = "";
+  document.getElementById("qInput").value = "";
+  document.getElementById("seriesSel").value = "";
+  document.getElementById("yearSel").value = "";
+  document.getElementById("sortSel").value = "desc";
+  expanded = {};
+  render();
+});
+
+init();
+</script>
+</body>
+</html>
