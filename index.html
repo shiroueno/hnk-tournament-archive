@@ -13,7 +13,8 @@
   body{background:var(--bg); color:var(--text); font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.5;}
   header{padding:20px 16px 8px; max-width:980px; margin:0 auto;}
   h1{font-size:22px; letter-spacing:.02em;}
-  h1 .sub{display:block; font-size:12px; color:var(--muted); margin-top:4px; font-weight:normal;}
+  h1 .red{color:#e5484d;}
+  .desc{font-size:13.5px; color:var(--muted); margin-top:8px;}
   .bar{position:sticky; top:0; z-index:50; background:rgba(20,22,26,.96); border-bottom:1px solid var(--line); padding:10px 16px;}
   .bar-in{max-width:980px; margin:0 auto; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
   .bar input[type="text"], .bar select{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:14px;}
@@ -21,6 +22,12 @@
   .bar button{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:14px; cursor:pointer;}
   .bar button:hover{border-color:var(--accent);}
   .count{font-size:13px; color:var(--muted); white-space:nowrap;}
+  .bar-summary{display:none; flex:1 1 auto; min-width:0; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .bar-summary .lbl{color:var(--muted); font-size:12px; margin-right:6px;}
+  .bar.is-minimized{padding:8px 16px;}
+  .bar.is-minimized .cond{display:none;}
+  .bar.is-minimized .bar-summary{display:block;}
+  .bar-toggle{white-space:nowrap;}
   .player-wrap{position:relative; flex:2 1 220px; display:flex;}
   .player-wrap input{width:100%;}
   .suggest{position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--card2); border:1px solid var(--line); border-radius:8px; overflow:hidden; display:none; max-height:320px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,.5);}
@@ -69,24 +76,27 @@
 </head>
 <body>
 <header>
-  <h1>AC北斗の拳 大型大会アーカイブ<span class="sub">過去の大型大会の動画・組合せ・参加者リスト（2010年〜）</span></h1>
+  <h1>AC北斗の拳 <span class="red">大型大会</span>アーカイブ</h1>
+  <p class="desc">AC北斗の拳の大型大会（2010年〜）の動画・組合せ・参加者リストをまとめたアーカイブです。プレイヤー名で検索すると、そのプレイヤーの参加大会を絞り込めます。</p>
 </header>
 
 <div class="bar">
   <div class="bar-in">
-    <div class="player-wrap">
+    <div class="player-wrap cond">
       <input type="text" id="playerInput" placeholder="プレイヤー名で検索（参加大会を表示）" autocomplete="off">
       <div class="suggest" id="suggest"></div>
     </div>
-    <select id="seriesSel"><option value="">シリーズ：全て</option></select>
-    <select id="yearSel"><option value="">年：全て</option></select>
-    <input type="text" id="qInput" placeholder="大会名・開催地で検索">
-    <select id="sortSel">
+    <select id="seriesSel" class="cond"><option value="">シリーズ：全て</option></select>
+    <select id="yearSel" class="cond"><option value="">年：全て</option></select>
+    <input type="text" id="qInput" class="cond" placeholder="大会名・開催地で検索">
+    <select id="sortSel" class="cond">
       <option value="desc">新しい順</option>
       <option value="asc">古い順</option>
     </select>
+    <div class="bar-summary" id="barSummary"></div>
     <span class="count" id="hitCount"></span>
-    <button id="resetBtn">リセット</button>
+    <button id="resetBtn" class="cond">リセット</button>
+    <button id="barToggle" class="bar-toggle" aria-expanded="true">▲ 最小化</button>
   </div>
 </div>
 
@@ -329,6 +339,7 @@ function render(){
     return state.sort === "desc" ? -lt : lt;
   });
   document.getElementById("hitCount").textContent = list.length + " / " + events.length + " 大会";
+  updateSummary();
   var main = document.getElementById("main");
   if (!list.length){
     main.innerHTML = '<div class="loading">条件に合う大会がありません。</div>';
@@ -403,6 +414,31 @@ document.getElementById("resetBtn").addEventListener("click", function(){
   expanded = {};
   render();
 });
+
+function updateSummary(){
+  var parts = [];
+  if (state.player) parts.push("プレイヤー：" + state.player);
+  if (state.series) parts.push(state.series);
+  if (state.year) parts.push(state.year + "年");
+  if (state.q) parts.push("検索：" + state.q);
+  if (state.sort === "asc") parts.push("古い順");
+  var el = document.getElementById("barSummary");
+  var txt = parts.length ? parts.join(" ／ ") : "指定なし（全件表示）";
+  el.innerHTML = '<span class="lbl">現在の条件</span>' + esc(txt);
+  el.setAttribute("title", "現在の条件：" + txt);
+}
+
+var barEl = document.querySelector(".bar");
+var barToggle = document.getElementById("barToggle");
+function setBarMinimized(min){
+  barEl.classList.toggle("is-minimized", min);
+  barToggle.setAttribute("aria-expanded", min ? "false" : "true");
+  barToggle.textContent = min ? "▼ 展開" : "▲ 最小化";
+}
+barToggle.addEventListener("click", function(){
+  setBarMinimized(!barEl.classList.contains("is-minimized"));
+});
+if (window.innerWidth <= 640) setBarMinimized(true);
 
 init();
 </script>
