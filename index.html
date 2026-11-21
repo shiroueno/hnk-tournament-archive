@@ -37,7 +37,8 @@
   .name{font-size:17px; font-weight:bold;}
   .series{background:#31363f; color:var(--accent2); border-radius:20px; padding:1px 10px; font-size:12px; white-space:nowrap;}
   .meta{color:var(--muted); font-size:13px; margin-top:4px;}
-  .pinfo{color:var(--accent); font-size:13px; margin-top:4px;}
+  .pinfo{color:var(--muted); font-size:13px; margin-top:4px;}
+  .pinfo strong{color:var(--accent);}
   .toggle{margin-top:10px; background:none; border:1px solid var(--line); color:var(--text); border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer;}
   .toggle:hover{border-color:var(--accent);}
   .detail{display:none; margin-top:12px; border-top:1px solid var(--line); padding-top:12px;}
@@ -224,18 +225,26 @@ function matchEvent(e){
 
 function playerInfoLine(e){
   if (!state.player) return "";
-  var rows = playersBy[e["大会ID"]] || [], i, parts = [];
+  var rows = playersBy[e["大会ID"]] || [], i, parts = [], seenTeam = {};
   for (i = 0; i < rows.length; i++){
-    if (rows[i]["プレイヤー名"] === state.player){
-      var p = state.player;
-      if (rows[i]["チーム名"]) p += "（" + rows[i]["チーム名"];
-      if (rows[i]["使用キャラ"]) p += (rows[i]["チーム名"] ? "／" : "（") + rows[i]["使用キャラ"];
-      if (rows[i]["チーム名"] || rows[i]["使用キャラ"]) p += "）";
-      parts.push(p);
+    if (rows[i]["プレイヤー名"] !== state.player) continue;
+    var team = rows[i]["チーム名"] || "";
+    if (team){
+      if (seenTeam[team]) continue;
+      seenTeam[team] = true;
+      var members = rows.filter(function(r){ return (r["チーム名"] || "") === team; });
+      var ms = members.map(function(m){
+        var s = esc(m["プレイヤー名"]) + (m["使用キャラ"] ? "（" + esc(m["使用キャラ"]) + "）" : "");
+        if (m["プレイヤー名"] === state.player) s = "<strong>" + s + "</strong>";
+        return s;
+      });
+      parts.push(esc(team) + "：" + ms.join("・"));
+    } else {
+      parts.push("<strong>" + esc(state.player) + "</strong>" + (rows[i]["使用キャラ"] ? "（" + esc(rows[i]["使用キャラ"]) + "）" : ""));
     }
   }
   if (!parts.length) return "";
-  return '<div class="pinfo">▶ ' + esc(parts.join("、")) + "</div>";
+  return '<div class="pinfo">▶ ' + parts.join("<br>▶ ") + "</div>";
 }
 
 function cardHtml(e){
@@ -399,4 +408,3 @@ init();
 </script>
 </body>
 </html>
-
