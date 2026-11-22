@@ -15,6 +15,11 @@
   h1{font-size:22px; letter-spacing:.02em;}
   h1 .red{color:#e5484d;}
   .desc{font-size:13.5px; color:var(--muted); margin-top:8px;}
+  .sister{display:flex; gap:10px; align-items:flex-start; margin:12px auto 2px; padding:12px 16px; background:var(--card); border:1px solid var(--accent2); border-radius:10px; color:var(--text); text-decoration:none;}
+  .sister:hover{background:var(--card2);}
+  .sister-label{background:var(--accent2); color:#0b0e13; font-weight:bold; font-size:12px; padding:2px 8px; border-radius:999px; white-space:nowrap; margin-top:1px;}
+  .sister-body{font-size:13.5px; line-height:1.55;}
+  .sister-body strong{font-size:14.5px;}
   .filters{max-width:980px; margin:0 auto; padding:12px 16px 4px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; position:relative; z-index:60;}
   .filters input[type="text"], .filters select{background:var(--card2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:14px;}
   .filters input[type="text"]{flex:1 1 150px; min-width:120px;}
@@ -98,6 +103,7 @@
 <header>
   <h1>AC北斗の拳 <span class="red">大型大会</span>アーカイブ</h1>
   <p class="desc">AC北斗の拳の大型大会（2010年〜）の動画・組合せ・参加者リストをまとめたアーカイブです。プレイヤー名で検索すると、そのプレイヤーの参加大会を絞り込めます。優勝・準優勝はネタバレ防止のため、スイッチをONにした時だけ表示されます。</p>
+  <a class="sister" href="https://shiroueno.github.io/hnk-gachi-archive/" target="_blank" rel="noopener"><span class="sister-label">姉妹サイト</span><span class="sister-body"><strong>AC北斗の拳 ガチ対戦動画アーカイブ</strong><br>10先・5先などのガチ対戦動画を、プレイヤー名やキャラで検索できます →</span></a>
 </header>
 
 <div class="filters">
