@@ -66,7 +66,8 @@
   a{color:#7db8f0; text-decoration:none;}
   a:hover{text-decoration:underline;}
   .chips{display:flex; flex-wrap:wrap; gap:6px;}
-  .chip{border:1px solid var(--line); border-radius:16px; padding:2px 10px; font-size:13px;}
+  .chip{border:1px solid var(--line); border-radius:16px; padding:2px 10px; font-size:13px; max-width:100%; overflow-wrap:anywhere;}
+  .vlist a{overflow-wrap:anywhere;}
   .team{margin:8px 0;}
   .team .tname{font-weight:bold; font-size:14px; margin-bottom:4px;}
   .members{display:flex; flex-wrap:wrap; gap:6px;}
@@ -283,6 +284,17 @@ function cardHtml(e){
   return h;
 }
 
+function fallbackLabel(url){
+  try {
+    var u = new URL(url), host = u.hostname;
+    if (host === "web.archive.org"){
+      var m = u.pathname.match(/^\/web\/\d+\/(https?:\/\/.+)$/);
+      if (m){ try { host = new URL(m[1]).hostname; } catch (e) {} }
+    }
+    return host || "リンク";
+  } catch (e) { return "リンク"; }
+}
+
 function detailHtml(e){
   var id = e["大会ID"], h = "", i, v, b, rows;
   var vids = videosBy[id] || [];
@@ -302,7 +314,7 @@ function detailHtml(e){
     h += "<h3>組合せ・結果</h3><div class='chips'>";
     for (i = 0; i < brs.length; i++){
       b = brs[i];
-      h += '<a class="chip" href="' + esc(b["URL"]) + '" target="_blank" rel="noopener">' + esc(b["ラベル"] || b["URL"]) + "</a>";
+      h += '<a class="chip" href="' + esc(b["URL"]) + '" target="_blank" rel="noopener">' + esc(b["ラベル"] || fallbackLabel(b["URL"])) + "</a>";
     }
     h += "</div>";
   }
