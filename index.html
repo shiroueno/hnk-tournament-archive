@@ -292,7 +292,8 @@ function resultHtml(label, cls, str){
   var chips = rest.split("/").map(function(part){
     var mm = part.match(/^(.*)（([^）]*)）$/);
     var nm = mm ? mm[1] : part, ch = mm ? mm[2] : "";
-    var h = '<span class="member">';
+    var hl = (state.player && nm === state.player) ? " hl" : "";
+    var h = '<span class="member' + hl + '">';
     if (ch && CHAR_COLORS[ch]) h += '<span class="dot" style="background:' + CHAR_COLORS[ch] + '"></span>';
     h += esc(nm);
     if (ch) h += '<span class="ch">' + esc(ch) + "</span>";
