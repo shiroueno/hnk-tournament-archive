@@ -272,18 +272,24 @@ function playerInfoLine(e){
       if (seenTeam[team]) continue;
       seenTeam[team] = true;
       var members = rows.filter(function(r){ return (r["チーム名"] || "") === team; });
-      var ms = members.map(function(m){
-        var s = esc(m["プレイヤー名"]) + (m["使用キャラ"] ? "（" + esc(m["使用キャラ"]) + "）" : "");
-        if (m["プレイヤー名"] === state.player) s = "<strong>" + s + "</strong>";
-        return s;
+      var chips = members.map(function(m){
+        return chipHtml(m["プレイヤー名"], m["使用キャラ"], m["プレイヤー名"] === state.player);
       });
-      parts.push(esc(team) + "：" + ms.join("・"));
+      parts.push('<div class="result-row"><span class="rteam">' + esc(team) + '</span><span class="members">' + chips.join("") + "</span></div>");
     } else {
-      parts.push("<strong>" + esc(state.player) + "</strong>" + (rows[i]["使用キャラ"] ? "（" + esc(rows[i]["使用キャラ"]) + "）" : ""));
+      parts.push('<div class="result-row"><span class="members">' + chipHtml(state.player, rows[i]["使用キャラ"], true) + "</span></div>");
     }
   }
   if (!parts.length) return "";
-  return '<div class="pinfo">▶ ' + parts.join("<br>▶ ") + "</div>";
+  return '<div class="pinfo">' + parts.join("") + "</div>";
+}
+
+function chipHtml(nm, ch, hl){
+  var h = '<span class="member' + (hl ? " hl" : "") + '">';
+  if (ch && CHAR_COLORS[ch]) h += '<span class="dot" style="background:' + CHAR_COLORS[ch] + '"></span>';
+  h += esc(nm);
+  if (ch) h += '<span class="ch">' + esc(ch) + "</span>";
+  return h + "</span>";
 }
 
 function resultHtml(label, cls, str){
@@ -292,15 +298,10 @@ function resultHtml(label, cls, str){
   var chips = rest.split("/").map(function(part){
     var mm = part.match(/^(.*)（([^）]*)）$/);
     var nm = mm ? mm[1] : part, ch = mm ? mm[2] : "";
-    var hl = (state.player && nm === state.player) ? " hl" : "";
-    var h = '<span class="member' + hl + '">';
-    if (ch && CHAR_COLORS[ch]) h += '<span class="dot" style="background:' + CHAR_COLORS[ch] + '"></span>';
-    h += esc(nm);
-    if (ch) h += '<span class="ch">' + esc(ch) + "</span>";
-    return h + "</span>";
+    return chipHtml(nm, ch, state.player && nm === state.player);
   });
   return '<div class="result-row"><span class="' + cls + '">' + label + "</span>" +
-    (team ? '<span class="rteam">【' + esc(team) + "】</span>" : "") +
+    (team ? '<span class="rteam">' + esc(team) + "</span>" : "") +
     '<span class="members">' + chips.join("") + "</span></div>";
 }
 
