@@ -53,6 +53,15 @@
   .meta{color:var(--muted); font-size:13px; margin-top:4px;}
   .pinfo{color:var(--muted); font-size:13px; margin-top:4px;}
   .pinfo strong{color:var(--accent);}
+  .result{margin-top:6px; font-size:13.5px;}
+  .result .win{color:var(--accent); font-weight:bold;}
+  .result .run{color:var(--muted); font-weight:bold;}
+  .result-off{color:var(--muted); font-size:12.5px; margin-top:6px;}
+  .res-label{color:var(--muted); font-size:12.5px; white-space:nowrap;}
+  .res-switch{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .res-switch button{border:none !important; border-radius:0 !important; padding:8px 12px;}
+  .res-switch button.on{background:var(--accent); color:#14161a; font-weight:bold;}
+  .bar.is-minimized .res-label{display:none;}
   .toggle{margin-top:10px; background:none; border:1px solid var(--line); color:var(--text); border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer;}
   .toggle:hover{border-color:var(--accent);}
   .detail{display:none; margin-top:12px; border-top:1px solid var(--line); padding-top:12px;}
@@ -85,7 +94,7 @@
 <body>
 <header>
   <h1>AC北斗の拳 <span class="red">大型大会</span>アーカイブ</h1>
-  <p class="desc">AC北斗の拳の大型大会（2010年〜）の動画・組合せ・参加者リストをまとめたアーカイブです。プレイヤー名で検索すると、そのプレイヤーの参加大会を絞り込めます。</p>
+  <p class="desc">AC北斗の拳の大型大会（2010年〜）の動画・組合せ・参加者リストをまとめたアーカイブです。プレイヤー名で検索すると、そのプレイヤーの参加大会を絞り込めます。優勝・準優勝はネタバレ防止のため、スイッチをONにした時だけ表示されます。</p>
 </header>
 
 <div class="filters">
@@ -95,7 +104,7 @@
   </div>
   <select id="seriesSel"><option value="">シリーズ：全て</option></select>
   <select id="yearSel"><option value="">年：全て</option></select>
-  <input type="text" id="qInput" placeholder="大会名・開催地で検索">
+  <input type="text" id="qInput" placeholder="大会名・開催地・形式で検索">
   <select id="sortSel">
     <option value="desc">新しい順</option>
     <option value="asc">古い順</option>
@@ -108,6 +117,11 @@
     <div class="conds" id="conds"></div>
     <div class="bar-summary" id="barSummary"></div>
     <span class="count" id="hitCount"></span>
+    <span class="res-label">優勝・準優勝</span>
+    <span class="res-switch" role="group" aria-label="優勝・準優勝の表示切替">
+      <button type="button" id="resOff" class="on" aria-pressed="true">OFF</button>
+      <button type="button" id="resOn" aria-pressed="false">ON</button>
+    </span>
     <button id="barToggle" class="bar-toggle" aria-expanded="true">▲ 最小化</button>
   </div>
 </div>
@@ -180,6 +194,7 @@ function fetchCSV(name){
 
 var events = [], videosBy = {}, bracketsBy = {}, playersBy = {}, playerTids = {}, playerCount = {};
 var state = { player:"", series:"", year:"", q:"", sort:"desc" };
+var showResults = false;
 var expanded = {};
 
 function groupByTid(list){
@@ -276,6 +291,16 @@ function cardHtml(e){
   h += '<span class="name">' + esc(e["大会名"]) + '</span>';
   h += '<span class="series">' + esc(e["シリーズ"]) + '</span></div>';
   h += '<div class="meta">' + esc(e["開催地"]) + " ｜ " + esc(e["形式"]) + " ｜ 参加：" + esc(e["参加数"]) + "</div>";
+  if (e["優勝"] || e["準優勝"]){
+    if (showResults){
+      h += '<div class="result">';
+      if (e["優勝"]) h += '<div><span class="win">優勝</span>：' + esc(e["優勝"]) + "</div>";
+      if (e["準優勝"]) h += '<div><span class="run">準優勝</span>：' + esc(e["準優勝"]) + "</div>";
+      h += "</div>";
+    } else {
+      h += '<div class="result-off">優勝・準優勝は非表示（ネタバレ防止）</div>';
+    }
+  }
   h += playerInfoLine(e);
   h += '<button class="toggle" data-act="toggle">' + (expanded[id] ? "閉じる" : "動画・組合せ・参加者を表示") + "</button>";
   h += '<div class="detail' + (expanded[id] ? " open" : "") + '" data-detail="' + esc(id) + '">';
@@ -453,6 +478,18 @@ function renderConds(){
   el.innerHTML = '<span class="lbl">現在の条件</span>' + esc(txt);
   el.setAttribute("title", "現在の条件：" + txt);
 }
+
+function setShowResults(v){
+  showResults = v;
+  var on = document.getElementById("resOn"), off = document.getElementById("resOff");
+  on.classList.toggle("on", v);
+  off.classList.toggle("on", !v);
+  on.setAttribute("aria-pressed", v ? "true" : "false");
+  off.setAttribute("aria-pressed", v ? "false" : "true");
+  render();
+}
+document.getElementById("resOn").addEventListener("click", function(){ setShowResults(true); });
+document.getElementById("resOff").addEventListener("click", function(){ setShowResults(false); });
 
 var barEl = document.querySelector(".bar");
 var barToggle = document.getElementById("barToggle");
