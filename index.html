@@ -347,7 +347,7 @@ function detailHtml(e){
       if (rows[i]["出典URL"] && !srcs[rows[i]["出典URL"]]){ srcs[rows[i]["出典URL"]] = true; slist.push(rows[i]["出典URL"]); }
     }
     if (slist.length){
-      h += "<div class='src'>参加者出典：" + slist.map(function(u){ return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u) + "</a>"; }).join(" ") + "</div>";
+      h += "<div class='src'>参加者出典：" + slist.map(function(u){ return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(fallbackLabel(u)) + "</a>"; }).join(" ") + "</div>";
     }
   }
   if (!vids.length && !brs.length && !rows.length) h += "<div class='src'>リンク・参加者データはまだありません。</div>";
